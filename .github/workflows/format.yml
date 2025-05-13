@@ -1,0 +1,43 @@
+name: "Format Check"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  clang-format-format:
+    name: "Run clang-format"
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.FORMAT_PAT }}
+          persist-credentials: true
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+
+      - name: Find source files
+        id: files
+        run: |
+          SRC=$(find . -type f \
+            \( -name '*.cpp' -o -name '*.hpp' -o -name '*.cc' -o -name '*.h' \))
+          echo "::set-output name=list::$SRC"
+
+      - name: Apply clang-format
+        run: |
+          echo "Formatting files..."
+          clang-format -i ${{ steps.files.outputs.list }}
+
+      - name: Commit formatted code
+        uses: EndBug/add-and-commit@v9
+        with:
+          token: ${{ secrets.FORMAT_PAT }}
+          author_name: "github-actions[bot]"
+          author_email: "github-actions[bot]@users.noreply.github.com"
+          message: "style: apply clang-format"
+          add: "."
