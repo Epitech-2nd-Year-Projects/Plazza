@@ -1,3 +1,8 @@
+/**
+ * @file Pizza.cpp
+ * @brief Implements the Pizza class for managing pizza.
+ */
+
 #include "Core/Pizza.hpp"
 #include "Exceptions/ArgumentException.hpp"
 #include <algorithm>
