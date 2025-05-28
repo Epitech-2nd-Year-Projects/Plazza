@@ -10,6 +10,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 set(SOURCES
     src/main.cpp
     src/Core/Process.cpp
+    src/Core/Pizza.cpp
 )
 
 add_executable(plazza ${SOURCES})
