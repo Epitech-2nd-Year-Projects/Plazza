@@ -1,5 +1,5 @@
 /**
- * @file Process.hpp
+ * @file Process.cpp
  * @brief Implements the Process class for managing processes.
  */
 
