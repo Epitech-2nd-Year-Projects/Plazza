@@ -58,7 +58,7 @@ public:
    * @return True if the pizza was successfully assigned, false if the cook is
    * busy.
    */
-  [[nodiscard]] bool assignPizza(const Core::Pizza &pizza);
+  bool assignPizza(const Core::Pizza &pizza);
 
 private:
   /**
