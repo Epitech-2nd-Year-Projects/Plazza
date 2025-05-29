@@ -55,6 +55,24 @@ public:
    */
   [[nodiscard]] MessageType getType() const { return m_type; }
 
+  /**
+   * @brief Gets the sender ID of the message.
+   * @return The sender ID.
+   */
+  [[nodiscard]] uint32_t getSenderId() const { return m_senderId; }
+
+  /**
+   * @brief Gets the timestamp of the message.
+   * @return The timestamp.
+   */
+  [[nodiscard]] uint32_t getTimestamp() const { return m_timestamp; }
+
+  /**
+   * @brief Gets the payload of the message.
+   * @return The payload as a string.
+   */
+  [[nodiscard]] const std::string &getPayload() const { return m_payload; }
+
 private:
   MessageType m_type;
   uint32_t m_senderId;

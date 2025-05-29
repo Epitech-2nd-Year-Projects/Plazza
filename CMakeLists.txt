@@ -18,6 +18,8 @@ set(SOURCES
     src/Communication/Message.cpp
     src/Core/OpaqueObject.cpp
     src/Core/PizzaPacket.cpp
+    src/Kitchen/Kitchen.cpp
+    src/Communication/Serialization.cpp
 )
 
 add_executable(plazza ${SOURCES})
