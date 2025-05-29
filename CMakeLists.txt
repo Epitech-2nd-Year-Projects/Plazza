@@ -13,6 +13,8 @@ set(SOURCES
     src/Core/Pizza.cpp
     src/Core/Thread.cpp
     src/Kitchen/Cook.cpp
+    src/Kitchen/Stock.cpp
+    src/Communication/MessageQueue.cpp
 )
 
 add_executable(plazza ${SOURCES})
