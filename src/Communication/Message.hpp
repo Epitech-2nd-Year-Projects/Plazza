@@ -49,6 +49,12 @@ public:
    */
   static Message deserialize(const std::string &data);
 
+  /**
+   * @brief Gets the type of the message.
+   * @return The type of the message.
+   */
+  [[nodiscard]] MessageType getType() const { return m_type; }
+
 private:
   MessageType m_type;
   uint32_t m_senderId;
