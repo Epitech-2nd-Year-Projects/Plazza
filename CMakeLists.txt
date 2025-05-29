@@ -20,6 +20,7 @@ set(SOURCES
     src/Core/PizzaPacket.cpp
     src/Kitchen/Kitchen.cpp
     src/Communication/Serialization.cpp
+    src/Reception/OrderParser.cpp
 )
 
 add_executable(plazza ${SOURCES})
