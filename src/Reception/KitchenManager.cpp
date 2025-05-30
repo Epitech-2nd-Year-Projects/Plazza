@@ -206,7 +206,7 @@ void KitchenManager::removeInactiveKitchens() {
   }
 
   for (uint32_t id : toRemove) {
-    std::cout << "Removing inactive kitchen " << id << std::endl;
+    LOG_INFO("Removing inactive kitchen " + std::to_string(id));
     m_ipcManager->removeKitchenChannel(id);
     m_kitchens.erase(id);
   }
