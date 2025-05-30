@@ -5,11 +5,12 @@
 
 namespace Plazza::Communication {
 
-IPCManager::IPCManager(uint32_t id, bool isReception)
-    : m_id(id), m_isReception(isReception) {
+IPCManager::IPCManager(uint32_t id, bool isReception, uint32_t cooksCount)
+    : m_id(id), m_isReception(isReception), m_cooksCount(cooksCount) {
 
   if (m_isReception) {
-    m_receptionInbox = std::make_unique<MessageQueue>("reception_inbox", true);
+    m_receptionInbox =
+        std::make_unique<MessageQueue>("reception_inbox", true, cooksCount);
   }
 }
 
@@ -22,7 +23,8 @@ void IPCManager::createKitchenChannel(uint32_t kitchenId) {
   }
 
   std::string queueName = "kitchen_" + std::to_string(kitchenId) + "_inbox";
-  m_kitchenQueues[kitchenId] = std::make_unique<MessageQueue>(queueName, false);
+  m_kitchenQueues[kitchenId] =
+      std::make_unique<MessageQueue>(queueName, true, m_cooksCount);
 }
 
 void IPCManager::removeKitchenChannel(uint32_t kitchenId) {
@@ -67,9 +69,11 @@ void IPCManager::connectToReception() {
   }
 
   std::string inboxName = "kitchen_" + std::to_string(m_id) + "_inbox";
-  m_kitchenInbox = std::make_unique<MessageQueue>(inboxName, true);
+  m_kitchenInbox =
+      std::make_unique<MessageQueue>(inboxName, false, m_cooksCount);
 
-  m_receptionOutbox = std::make_unique<MessageQueue>("reception_inbox", false);
+  m_receptionOutbox =
+      std::make_unique<MessageQueue>("reception_inbox", false, m_cooksCount);
   m_connected = true;
 }
 

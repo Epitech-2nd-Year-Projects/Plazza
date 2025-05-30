@@ -26,7 +26,7 @@ public:
    * @param id The ID of the IPCManager.
    * @param isReception If true, this instance acts as a reception manager.
    */
-  IPCManager(uint32_t id, bool isReception = false);
+  IPCManager(uint32_t id, bool isReception = false, uint32_t cooksCount = 0);
 
   /**
    * @brief Destructor that stops listening.
@@ -123,6 +123,7 @@ private:
    */
   std::string getQueueName(uint32_t fromId, uint32_t toId) const;
 
+private:
   uint32_t m_id;
   bool m_isReception;
   std::atomic<bool> m_connected{false};
@@ -137,5 +138,7 @@ private:
   std::unordered_map<Message::MessageType, std::function<void(const Message &)>>
       m_handlers;
   std::thread m_listenerThread;
+
+  uint32_t m_cooksCount;
 };
 } // namespace Plazza::Communication
