@@ -21,6 +21,7 @@ set(SOURCES
     src/Kitchen/Kitchen.cpp
     src/Communication/Serialization.cpp
     src/Reception/OrderParser.cpp
+    src/Reception/KitchenManager.cpp
 )
 
 add_executable(plazza ${SOURCES})
