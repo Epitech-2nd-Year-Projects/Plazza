@@ -1,7 +1,7 @@
 #include "Communication/IPCManager.hpp"
 #include "Exceptions/IPCException.hpp"
+#include "Logger/Logger.hpp"
 #include <chrono>
-#include <iostream>
 
 namespace Plazza::Communication {
 
@@ -57,8 +57,8 @@ void IPCManager::broadcastToKitchens(const Message &message) {
     try {
       queue->send(message.serialize());
     } catch (const std::exception &e) {
-      std::cerr << "Failed to send to kitchen " << kitchenId << ": " << e.what()
-                << std::endl;
+      LOG_ERROR("Failed to send message to kitchen " +
+                std::to_string(kitchenId) + ": " + e.what());
     }
   }
 }
@@ -130,7 +130,7 @@ void IPCManager::listenLoop() {
       }
     } catch (const std::exception &e) {
       if (m_listening) {
-        std::cerr << "Error in listen loop: " << e.what() << std::endl;
+        LOG_ERROR("Error receiving message: " + std::string(e.what()));
       }
     }
   }
@@ -142,7 +142,7 @@ void IPCManager::processMessage(const Message &message) {
     try {
       it->second(message);
     } catch (const std::exception &e) {
-      std::cerr << "Error processing message: " << e.what() << std::endl;
+      LOG_ERROR("Error processing message: " + std::string(e.what()));
     }
   }
 }

@@ -24,6 +24,7 @@ set(SOURCES
     src/Reception/KitchenManager.cpp
     src/Reception/Reception.cpp
     src/Communication/IPCManager.cpp
+    src/Logger/Logger.cpp
 )
 
 add_executable(plazza ${SOURCES})

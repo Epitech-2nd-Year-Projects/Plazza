@@ -1,4 +1,5 @@
 #include "Reception/Reception.hpp"
+#include "Logger/Logger.hpp"
 #include "Reception/OrderParser.hpp"
 #include <iostream>
 
@@ -42,10 +43,10 @@ void Reception::processCommand(const std::string &command) {
         OrderParser::parseOrder(trimmedCommand);
     if (!orders.empty()) {
       m_kitchenManager->distributeOrder(orders);
-      std::cout << "Order placed: " << orders.size() << " pizzas" << std::endl;
+      LOG_INFO("Order placed: " + std::to_string(orders.size()) + " pizzas");
     }
   } catch (const std::exception &e) {
-    std::cout << "Error: " << e.what() << std::endl;
+    LOG_ERROR(std::string("Error: ") + e.what());
   }
 }
 } // namespace Plazza::Reception

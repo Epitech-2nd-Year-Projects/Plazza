@@ -2,6 +2,7 @@
 #include "Communication/Serialization.hpp"
 #include "Core/Pizza.hpp"
 #include "Kitchen/Kitchen.hpp"
+#include "Logger/Logger.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -66,13 +67,12 @@ void KitchenManager::distributeOrder(
         it->second->lastHeartbeat = std::chrono::steady_clock::now();
       }
 
-      std::cout << "Assigned pizza " << Core::toString(order.type) << " "
-                << Core::toString(order.size) << " to kitchen " << kitchenId
-                << std::endl;
-
+      LOG_INFO("Assigned pizza " + Core::toString(order.type) + " " +
+               Core::toString(order.size) + " to kitchen " +
+               std::to_string(kitchenId));
     } catch (const std::exception &e) {
-      std::cerr << "Failed to send order to kitchen " << kitchenId << ": "
-                << e.what() << std::endl;
+      LOG_ERROR("Failed to send order to kitchen " + std::to_string(kitchenId) +
+                ": " + e.what());
     }
   }
   removeInactiveKitchens();
@@ -119,7 +119,8 @@ void KitchenManager::cleanup() {
     try {
       m_ipcManager->sendToKitchen(id, shutdownMessage);
     } catch (const std::exception &e) {
-      std::cerr << "Failed to send shutdown to kitchen " << id << std::endl;
+      LOG_ERROR("Failed to send shutdown to kitchen " + std::to_string(id) +
+                ": " + e.what());
     }
   }
 
@@ -184,10 +185,11 @@ void KitchenManager::createKitchen() {
     });
 
     m_kitchens[kitchenId] = std::move(kitchenInfo);
-    std::cout << "Created kitchen " << kitchenId << std::endl;
+    LOG_INFO("Created kitchen " + std::to_string(kitchenId));
 
   } catch (const std::exception &e) {
-    std::cerr << "Failed to create kitchen: " << e.what() << std::endl;
+    LOG_ERROR("Failed to create kitchen " + std::to_string(kitchenId) + ": " +
+              e.what());
     m_ipcManager->removeKitchenChannel(kitchenId);
   }
 }
@@ -223,7 +225,8 @@ void KitchenManager::requestStatusUpdates() {
     try {
       m_ipcManager->sendToKitchen(id, message);
     } catch (const std::exception &e) {
-      std::cerr << "Failed to request status from kitchen " << id << std::endl;
+      LOG_ERROR("Failed to request status from kitchen " + std::to_string(id) +
+                ": " + e.what());
     }
   }
 }
@@ -238,9 +241,9 @@ void KitchenManager::handlePizzaCompleted(
 
     Core::Pizza pizza = completion.pizza.getPizza();
 
-    std::cout << "Pizza completed: " << Core::toString(pizza.getType()) << " "
-              << Core::toString(pizza.getSize()) << " from kitchen "
-              << completion.pizza.getKitchenId() << std::endl;
+    LOG_INFO("Pizza completed: " + Core::toString(pizza.getType()) + " " +
+             Core::toString(pizza.getSize()) + " from kitchen " +
+             std::to_string(completion.pizza.getKitchenId()));
 
     auto it = m_kitchens.find(message.getSenderId());
     if (it != m_kitchens.end()) {
@@ -250,7 +253,7 @@ void KitchenManager::handlePizzaCompleted(
     }
 
   } catch (const std::exception &e) {
-    std::cerr << "Error handling pizza completion: " << e.what() << std::endl;
+    LOG_ERROR("Error handling pizza completion: " + std::string(e.what()));
   }
 }
 
@@ -269,7 +272,7 @@ void KitchenManager::handleStatusResponse(
     }
 
   } catch (const std::exception &e) {
-    std::cerr << "Error handling status response: " << e.what() << std::endl;
+    LOG_ERROR("Error handling status response: " + std::string(e.what()));
   }
 }
 
