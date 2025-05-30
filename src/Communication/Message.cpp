@@ -14,7 +14,7 @@ Message::Message(MessageType type, uint32_t senderId, uint32_t timestamp,
 
 std::string Message::serialize() const {
   std::ostringstream oss;
-  oss << static_cast<uint8_t>(m_type) << "|" << m_senderId << "|" << m_timestamp
+  oss << static_cast<int>(m_type) << "|" << m_senderId << "|" << m_timestamp
       << "|" << m_payload.length() << "|" << m_payload;
   return oss.str();
 }
