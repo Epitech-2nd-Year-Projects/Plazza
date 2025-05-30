@@ -17,21 +17,27 @@ Stock::Stock(std::chrono::milliseconds restockTime)
 
 Stock::~Stock() { stopRestock(); }
 
-bool Stock::consumeIngredients(
-    const std::vector<Core::Ingredient> &ingredients) {
+bool Stock::consumeIngredients(const std::vector<Core::Ingredient> &ingredients,
+                               std::function<bool()> reservation) {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  for (const auto &ingredient : ingredients) {
+  for (auto &ingredient : ingredients) {
     if (m_stock[ingredient] == 0) {
       return false;
     }
   }
 
-  for (const auto &ingredient : ingredients) {
-    m_stock[ingredient]--;
+  for (auto &ingredient : ingredients) {
+    --m_stock[ingredient];
   }
 
-  return true;
+  bool isReservationSuccessful = reservation();
+  if (!isReservationSuccessful) {
+    for (auto &ig : ingredients) {
+      ++m_stock[ig];
+    }
+  }
+  return isReservationSuccessful;
 }
 
 std::map<Core::Ingredient, uint32_t> Stock::getStock() const {
