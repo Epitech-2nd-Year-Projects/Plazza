@@ -12,7 +12,8 @@ KitchenManager::KitchenManager(uint32_t cooksPerKitchen,
                                double timeMultiplier)
     : m_cooksPerKitchen(cooksPerKitchen), m_stockRestockTime(stockRestockTime),
       m_timeMultiplier(timeMultiplier) {
-  m_ipcManager = std::make_unique<Communication::IPCManager>(0, true);
+  m_ipcManager = std::make_unique<Communication::IPCManager>(
+      0, true, cooksPerKitchen * MAX_PIZZAS_PER_KITCHEN_MULTIPLIER);
 
   setupMessageHandlers();
   m_ipcManager->startListening();
@@ -36,6 +37,8 @@ void KitchenManager::setupMessageHandlers() {
 
 void KitchenManager::distributeOrder(
     const std::vector<Communication::PizzaOrder> &orders) {
+  removeInactiveKitchens();
+
   for (const auto &order : orders) {
     uint32_t kitchenId = findBestKitchen();
 
