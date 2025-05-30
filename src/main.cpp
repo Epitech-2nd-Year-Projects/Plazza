@@ -1,4 +1,5 @@
 #include "Exceptions/ArgumentException.hpp"
+#include "Logger/Logger.hpp"
 #include "Reception/Reception.hpp"
 #include <chrono>
 #include <iostream>
@@ -14,6 +15,10 @@ int main(int argc, char **argv) {
     printUsage(argv);
     return 84;
   }
+
+  auto &logger = Plazza::Logger::Logger::getInstance();
+  logger.setLogLevel(Plazza::Logger::LogLevel::INFO);
+  logger.setLogToFile(true, "logs/plazza.log");
 
   try {
     double timeMultiplier = std::stod(argv[1]);
@@ -36,7 +41,7 @@ int main(int argc, char **argv) {
     reception.run();
 
   } catch (const std::exception &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+    LOG_ERROR(std::string("Error: ") + e.what());
     return 84;
   }
   return 0;
