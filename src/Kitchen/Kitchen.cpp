@@ -2,7 +2,7 @@
 #include "Communication/Serialization.hpp"
 #include "Core/Pizza.hpp"
 #include "Core/PizzaPacket.hpp"
-#include <iostream>
+#include "Logger/Logger.hpp"
 #include <thread>
 
 namespace Plazza::Kitchen {
@@ -39,8 +39,8 @@ void Kitchen::run() {
 
     m_ipcManager->startListening();
 
-    std::cout << "Kitchen " << m_id << " started with " << m_cooksCount
-              << " cooks" << std::endl;
+    LOG_INFO("Kitchen " + std::to_string(m_id) + " started with " +
+             std::to_string(m_cooksCount) + " cooks");
 
     auto lastHeartbeat = std::chrono::steady_clock::now();
 
@@ -55,8 +55,8 @@ void Kitchen::run() {
       processPendingOrders();
 
       if (now - m_lastActivity >= TIMEOUT) {
-        std::cout << "Kitchen " << m_id << " timed out due to inactivity"
-                  << std::endl;
+        LOG_INFO("Kitchen " + std::to_string(m_id) + " timed out due to " +
+                 "inactivity");
         break;
       }
 
@@ -64,10 +64,10 @@ void Kitchen::run() {
     }
 
   } catch (const std::exception &e) {
-    std::cerr << "Kitchen " << m_id << " error: " << e.what() << std::endl;
+    LOG_ERROR("Kitchen " + std::to_string(m_id) + " error: " + e.what());
   }
 
-  std::cout << "Kitchen " << m_id << " shutting down" << std::endl;
+  LOG_INFO("Kitchen " + std::to_string(m_id) + " shutting down");
 }
 
 void Kitchen::stop() {
@@ -123,9 +123,9 @@ void Kitchen::handlePizzaOrder(const Communication::Message &message) {
         if (cook->assignPizza(*pizza)) {
           ++m_pendingPizzas;
           m_lastActivity = std::chrono::steady_clock::now();
-          std::cout << "Kitchen " << m_id << " accepted pizza order: "
-                    << Core::toString(pizza->getType()) << " "
-                    << Core::toString(pizza->getSize()) << std::endl;
+          LOG_INFO("Kitchen " + std::to_string(m_id) + " accepted pizza " +
+                   "order: " + Core::toString(pizza->getType()) + " " +
+                   Core::toString(pizza->getSize()));
           return true;
         }
       }
@@ -135,15 +135,14 @@ void Kitchen::handlePizzaOrder(const Communication::Message &message) {
     if (!assigned) {
       std::lock_guard<std::mutex> lockGuard(m_pendingMutex);
       m_pendingOrders.emplace_back(order);
-      std::cout << "Kitchen " << m_id
-                << " queued pizza order (no cook/stock available): "
-                << Core::toString(order.type) << " "
-                << Core::toString(order.size) << std::endl;
+      LOG_INFO("Kitchen " + std::to_string(m_id) +
+               " queued pizza order (no cook/stock available): " +
+               Core::toString(order.type) + " " + Core::toString(order.size));
     }
 
   } catch (const std::exception &e) {
-    std::cerr << "Error handling pizza order in kitchen " << m_id << ": "
-              << e.what() << std::endl;
+    LOG_ERROR("Error handling pizza order in kitchen " + std::to_string(m_id) +
+              ": " + e.what());
   }
 }
 
@@ -155,7 +154,7 @@ void Kitchen::handleStatusRequest(
 
 void Kitchen::handleShutdown(
     [[maybe_unused]] const Communication::Message &message) {
-  std::cout << "Kitchen " << m_id << " received shutdown signal" << std::endl;
+  LOG_INFO("Kitchen " + std::to_string(m_id) + " received shutdown signal");
   m_running = false;
 }
 
@@ -192,8 +191,8 @@ void Kitchen::sendHeartbeat() {
   try {
     m_ipcManager->sendToReception(message);
   } catch (const std::exception &e) {
-    std::cerr << "Kitchen " << m_id << " failed to send heartbeat: " << e.what()
-              << std::endl;
+    LOG_ERROR("Kitchen " + std::to_string(m_id) +
+              " failed to send heartbeat: " + e.what());
   }
 }
 
@@ -230,8 +229,8 @@ void Kitchen::sendStatus() {
   try {
     m_ipcManager->sendToReception(message);
   } catch (const std::exception &e) {
-    std::cerr << "Kitchen " << m_id << " failed to send status: " << e.what()
-              << std::endl;
+    LOG_ERROR("Kitchen " + std::to_string(m_id) +
+              " failed to send status: " + e.what());
   }
 }
 
@@ -248,9 +247,9 @@ void Kitchen::processPendingOrders() {
         if (cook->assignPizza(*pizza)) {
           ++m_pendingPizzas;
           m_lastActivity = std::chrono::steady_clock::now();
-          std::cout << "Kitchen " << m_id << " assigned pending pizza order: "
-                    << Core::toString(pizza->getType()) << " "
-                    << Core::toString(pizza->getSize()) << std::endl;
+          LOG_INFO("Kitchen " + std::to_string(m_id) + " assigned pending " +
+                   "pizza order: " + Core::toString(pizza->getType()) + " " +
+                   Core::toString(pizza->getSize()));
           return true;
         }
       }
