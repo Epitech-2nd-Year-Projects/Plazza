@@ -26,7 +26,8 @@ void Cook::stop() {
 }
 
 bool Cook::assignPizza(const Core::Pizza &pizza) {
-  if (m_isBusy) {
+  bool expected = false;
+  if (!m_isBusy.compare_exchange_strong(expected, true)) {
     return false;
   }
   m_pizzaQueue.push(pizza);
@@ -37,9 +38,8 @@ void Cook::cookingLoop() {
   while (!m_shouldStop) {
     auto pizzaToCook = m_pizzaQueue.tryPop();
     if (pizzaToCook) {
-      m_isBusy = true;
       cookPizza(*pizzaToCook);
-      m_isBusy = false;
+      m_isBusy.store(false);
     } else {
       std::this_thread::yield();
       std::this_thread::sleep_for(std::chrono::milliseconds(10));

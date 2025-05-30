@@ -50,7 +50,7 @@ public:
    * @brief Checks if the cook is currently busy preparing a pizza.
    * @return True if the cook is busy, false otherwise.
    */
-  [[nodiscard]] bool isBusy() const { return m_isBusy; }
+  [[nodiscard]] bool isBusy() const { return m_isBusy.load(); }
 
   /**
    * @brief Assigns a pizza to the cook for preparation.
