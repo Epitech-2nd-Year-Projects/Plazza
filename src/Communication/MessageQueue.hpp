@@ -25,7 +25,8 @@ public:
    * @param isCreator If true, the queue will be created, otherwise, it will be
    * opened if it already exists.
    */
-  MessageQueue(const std::string &queueName, bool isCreator = false);
+  MessageQueue(const std::string &queueName, bool isCreator = false,
+               int maxMessageCount = 10);
 
   /**
    * @brief Destructor that closes the message queue.
@@ -101,8 +102,7 @@ public:
   template <typename T> MessageQueue &operator>>(T &data);
 
 private:
-  static constexpr size_t MAX_MESSAGE_SIZE = 8192;
-  static constexpr int MAX_MESSAGES = 100;
+  static constexpr size_t MAX_MESSAGE_SIZE = 1024;
 
   std::string m_name;
   mqd_t m_descriptor;

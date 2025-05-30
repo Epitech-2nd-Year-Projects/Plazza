@@ -3,15 +3,17 @@
 #include <cstring>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <thread>
 #include <unistd.h>
 
 namespace Plazza::Communication {
-MessageQueue::MessageQueue(const std::string &queueName, bool isCreator)
+MessageQueue::MessageQueue(const std::string &queueName, bool isCreator,
+                           int maxMessageCount)
     : m_name("/" + queueName), m_descriptor(-1), m_isCreator(isCreator),
       m_isOpen(false) {
   struct mq_attr attr = {};
   attr.mq_flags = 0;
-  attr.mq_maxmsg = MAX_MESSAGES;
+  attr.mq_maxmsg = maxMessageCount;
   attr.mq_msgsize = MAX_MESSAGE_SIZE;
   attr.mq_curmsgs = 0;
 
@@ -61,7 +63,16 @@ void MessageQueue::send(const std::string &message, unsigned int priority) {
     throw Exceptions::MessageException("Message too large");
   }
 
-  if (mq_send(m_descriptor, message.c_str(), message.size(), priority) == -1) {
+  ssize_t messageQueueReturn;
+  do {
+    messageQueueReturn =
+        mq_send(m_descriptor, message.c_str(), message.size(), priority);
+    if (messageQueueReturn == -1 && errno == EAGAIN) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  } while (messageQueueReturn == -1 && errno == EAGAIN);
+
+  if (messageQueueReturn == -1) {
     throw Exceptions::MessageException("Failed to send message: " +
                                        std::string(std::strerror(errno)));
   }
