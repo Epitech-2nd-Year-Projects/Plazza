@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Communication/IPCManager.hpp"
+#include "Communication/Serialization.hpp"
 #include "Kitchen/Cook.hpp"
 #include "Kitchen/Stock.hpp"
 #include <atomic>
@@ -89,6 +90,12 @@ private:
    */
   void sendStatus();
 
+  /**
+   * @brief Processes pending pizza orders.
+   * This method checks for pending orders and assigns them to available cooks.
+   */
+  void processPendingOrders();
+
 private:
   static constexpr std::chrono::seconds TIMEOUT{5};
   static constexpr std::chrono::seconds HEARTBEAT_INTERVAL{1};
@@ -103,5 +110,8 @@ private:
   std::atomic<uint32_t> m_pendingPizzas{0};
   std::atomic<bool> m_running{true};
   std::chrono::steady_clock::time_point m_lastActivity;
+
+  mutable std::mutex m_pendingMutex;
+  std::deque<Communication::PizzaOrder> m_pendingOrders;
 };
 } // namespace Plazza::Kitchen

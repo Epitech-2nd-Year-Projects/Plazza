@@ -20,7 +20,8 @@ Kitchen::Kitchen(uint32_t id, uint32_t cookCount,
     m_cooks.push_back(std::move(cook));
   }
 
-  m_ipcManager = std::make_unique<Communication::IPCManager>(m_id, false);
+  m_ipcManager =
+      std::make_unique<Communication::IPCManager>(m_id, false, m_cooksCount);
   setupMessageHandlers();
   m_lastActivity = std::chrono::steady_clock::now();
 }
@@ -51,6 +52,8 @@ void Kitchen::run() {
         lastHeartbeat = now;
       }
 
+      processPendingOrders();
+
       if (now - m_lastActivity >= TIMEOUT) {
         std::cout << "Kitchen " << m_id << " timed out due to inactivity"
                   << std::endl;
@@ -79,7 +82,7 @@ void Kitchen::stop() {
   }
 
   if (m_stock) {
-    m_stock->startRestock();
+    m_stock->stopRestock();
   }
 }
 
@@ -111,27 +114,31 @@ void Kitchen::handlePizzaOrder(const Communication::Message &message) {
     Communication::PizzaOrder order;
     order.unpack(object);
 
-    Core::Pizza pizza(order.type, order.size);
+    std::unique_ptr<Core::Pizza> pizza =
+        Core::Pizza::createPizza(order.type, order.size);
+    auto &ingredients = pizza->getIngredients();
 
-    bool assigned = false;
-    for (auto &cook : m_cooks) {
-      if (!cook->isBusy()) {
-        if (m_stock->consumeIngredients(pizza.getIngredients())) {
-          cook->assignPizza(pizza);
-          m_pendingPizzas++;
-          assigned = true;
+    bool assigned = m_stock->consumeIngredients(ingredients, [&]() -> bool {
+      for (auto &cook : m_cooks) {
+        if (cook->assignPizza(*pizza)) {
+          ++m_pendingPizzas;
           m_lastActivity = std::chrono::steady_clock::now();
           std::cout << "Kitchen " << m_id << " accepted pizza order: "
-                    << Core::toString(pizza.getType()) << " "
-                    << Core::toString(pizza.getSize()) << std::endl;
-          break;
+                    << Core::toString(pizza->getType()) << " "
+                    << Core::toString(pizza->getSize()) << std::endl;
+          return true;
         }
       }
-    }
+      return false;
+    });
 
     if (!assigned) {
-      std::cout << "Kitchen " << m_id << " rejected pizza order (no resources)"
-                << std::endl;
+      std::lock_guard<std::mutex> lockGuard(m_pendingMutex);
+      m_pendingOrders.emplace_back(order);
+      std::cout << "Kitchen " << m_id
+                << " queued pizza order (no cook/stock available): "
+                << Core::toString(order.type) << " "
+                << Core::toString(order.size) << std::endl;
     }
 
   } catch (const std::exception &e) {
@@ -225,6 +232,36 @@ void Kitchen::sendStatus() {
   } catch (const std::exception &e) {
     std::cerr << "Kitchen " << m_id << " failed to send status: " << e.what()
               << std::endl;
+  }
+}
+
+void Kitchen::processPendingOrders() {
+  std::lock_guard<std::mutex> lg(m_pendingMutex);
+  auto it = m_pendingOrders.begin();
+  while (it != m_pendingOrders.end()) {
+    auto &order = *it;
+    auto pizza = Core::Pizza::createPizza(order.type, order.size);
+    auto &ingredients = pizza->getIngredients();
+
+    bool assigned = m_stock->consumeIngredients(ingredients, [&]() -> bool {
+      for (auto &cook : m_cooks) {
+        if (cook->assignPizza(*pizza)) {
+          ++m_pendingPizzas;
+          m_lastActivity = std::chrono::steady_clock::now();
+          std::cout << "Kitchen " << m_id << " assigned pending pizza order: "
+                    << Core::toString(pizza->getType()) << " "
+                    << Core::toString(pizza->getSize()) << std::endl;
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (assigned) {
+      it = m_pendingOrders.erase(it);
+    } else {
+      ++it;
+    }
   }
 }
 } // namespace Plazza::Kitchen

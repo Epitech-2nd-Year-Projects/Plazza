@@ -40,4 +40,28 @@ OpaqueObject OpaqueObject::fromString(const std::string &payload) {
 
   return OpaqueObject(std::move(data));
 }
+
+OpaqueObject &OpaqueObject::pack(const std::vector<uint8_t> &value) {
+  pack(static_cast<uint32_t>(value.size()));
+  m_data.insert(m_data.end(), value.begin(), value.end());
+  return *this;
+}
+
+OpaqueObject &OpaqueObject::unpack(std::vector<uint8_t> &value) {
+  uint32_t length;
+  unpack(length);
+  checkReadSpace(length);
+
+  value.assign(m_data.begin() + m_readOffset,
+               m_data.begin() + m_readOffset + length);
+  m_readOffset += length;
+  return *this;
+}
+
+void OpaqueObject::checkReadSpace(size_t bytes) const {
+  if (m_readOffset + bytes > m_data.size()) {
+    throw Exceptions::OpaqueObjectException("Not enough data to unpack " +
+                                            std::to_string(bytes) + " bytes");
+  }
+}
 } // namespace Plazza::Core

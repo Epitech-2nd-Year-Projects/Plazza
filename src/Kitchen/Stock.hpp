@@ -37,7 +37,8 @@ public:
    * otherwise.
    */
   [[nodiscard]] bool
-  consumeIngredients(const std::vector<Core::Ingredient> &ingredients);
+  consumeIngredients(const std::vector<Core::Ingredient> &ingredients,
+                     std::function<bool()> reservation);
 
   /**
    * @brief Gets the current stock of ingredients.

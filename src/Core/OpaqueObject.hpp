@@ -44,6 +44,13 @@ public:
   }
 
   /**
+   * @brief Packs a vector of bytes into the OpaqueObject.
+   * @param value The vector of bytes to pack.
+   * @return Reference to this OpaqueObject.
+   */
+  OpaqueObject &pack(const std::vector<uint8_t> &value);
+
+  /**
    * @brief Unpacks a value from the OpaqueObject.
    * @tparam T The type of the value to unpack.
    * @param value The variable to store the unpacked value.
@@ -59,6 +66,13 @@ public:
     m_readOffset += sizeof(T);
     return *this;
   }
+
+  /**
+   * @brief Unpacks a vector of bytes from the OpaqueObject.
+   * @param value The vector to store the unpacked bytes.
+   * @return Reference to this OpaqueObject.
+   */
+  OpaqueObject &unpack(std::vector<uint8_t> &value);
 
   /**
    * @brief Gets the internal data vector.
@@ -107,6 +121,13 @@ public:
    * @throws std::runtime_error if the string is not valid.
    */
   static OpaqueObject fromString(const std::string &payload);
+
+  /**
+   * @brief Checks if there is enough space to read a given number of bytes.
+   * @param bytes The number of bytes to check.
+   * @throws Exceptions::OpaqueObjectException if there is not enough space.
+   */
+  void checkReadSpace(size_t bytes) const;
 
 private:
   std::vector<uint8_t> m_data;

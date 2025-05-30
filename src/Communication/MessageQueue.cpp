@@ -6,12 +6,13 @@
 #include <unistd.h>
 
 namespace Plazza::Communication {
-MessageQueue::MessageQueue(const std::string &queueName, bool isCreator)
+MessageQueue::MessageQueue(const std::string &queueName, bool isCreator,
+                           int maxMessageCount)
     : m_name("/" + queueName), m_descriptor(-1), m_isCreator(isCreator),
       m_isOpen(false) {
   struct mq_attr attr = {};
   attr.mq_flags = 0;
-  attr.mq_maxmsg = MAX_MESSAGES;
+  attr.mq_maxmsg = maxMessageCount;
   attr.mq_msgsize = MAX_MESSAGE_SIZE;
   attr.mq_curmsgs = 0;
 
