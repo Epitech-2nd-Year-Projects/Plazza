@@ -95,6 +95,20 @@ void KitchenManager::displayStatus() const {
                   std::to_string(kitchen->status.totalCooks))
               << std::setw(10) << kitchen->status.pendingPizzas << std::setw(8)
               << (isActive ? "Active" : "Inactive") << std::endl;
+
+    if (isActive && !kitchen->status.stock.empty()) {
+      std::cout << "Stock: ";
+      bool first = true;
+      for (const auto &[ingredient, count] : kitchen->status.stock) {
+        if (!first)
+          std::cout << ", ";
+        std::cout << Core::toString(ingredient) << ":" << count;
+        first = false;
+      }
+      std::cout << std::endl;
+    } else if (isActive) {
+      std::cout << "Stock: No data available" << std::endl;
+    }
   }
 
   if (m_kitchens.empty()) {
